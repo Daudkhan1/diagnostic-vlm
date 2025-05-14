@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  genai-frontend:
+    image: genai-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=https://vlmpraid-ai.com/api
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - REACT_APP_PREVIEW_PASSWORD=Steelglass123!@
+    restart: always

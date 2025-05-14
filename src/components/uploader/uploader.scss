@@ -1,0 +1,77 @@
+.custom-file-uploader {
+  &.ant-upload-wrapper {
+    position: relative;
+
+    .ant-upload {
+      &.ant-upload-drag {
+        .ant-upload.ant-upload-btn {
+          padding: 28px 0;
+
+          .ant-upload-drag-container {
+            .ant-upload-drag-icon {
+              margin-bottom: 10px;
+
+              > svg {
+              }
+            }
+
+            .ant-upload-text {
+              font-weight: 600;
+              font-size: 16px;
+              color: #05060a;
+            }
+
+            .ant-upload-hint {
+              font-weight: 400;
+              font-size: 14px;
+              color: #05060a;
+              margin-bottom: 16px;
+
+              .highlighted-text {
+                background: linear-gradient(
+                  90.38deg,
+                  #418cfd 67.78%,
+                  #d141fd 127.6%
+                );
+                -webkit-background-clip: text;
+                color: transparent;
+              }
+            }
+
+            .ant-btn.uploader-custom-button {
+              background-color: #3f8bfd;
+              border-radius: 90px;
+
+              font-weight: 400;
+              font-size: 14px;
+              color: #ffffff;
+            }
+
+            //uploader UI
+            .uploader-loading-container {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+
+              gap: 10px;
+              width: 100%;
+
+              .ant-progress {
+              }
+
+              .ant-btn.uploader-cancel-button {
+                border-radius: 90px;
+                border-color: #f95668;
+                color: #f95668;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .ant-upload-list {
+      display: none;
+    }
+  }
+}
