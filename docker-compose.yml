@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   genai-frontend:
-    image: genai-frontend:latest
+    image: 831926608672.dkr.ecr.ap-south-1.amazonaws.com/genai-frontend:latest
     ports:
       - "3000:3000"
     environment:
