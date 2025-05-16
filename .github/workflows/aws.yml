@@ -54,7 +54,7 @@ jobs:
           REGION=${{ secrets.AMAZON_S3_REGION_NAME }}
           ECR_URI=${{ secrets.ECR_URI }}
           AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-          INSTANCE_ID=i-0747655acaebfa7a7
+          INSTANCE_ID=i-07a7ff0d0e44e03c5
 
           COMMAND_ID=$(aws ssm send-command \
             --document-name "AWS-RunShellScript" \
