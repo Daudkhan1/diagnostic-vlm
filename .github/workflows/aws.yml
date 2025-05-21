@@ -61,25 +61,22 @@ jobs:
             --targets "Key=instanceIds,Values=${INSTANCE_ID}" \
             --parameters "commands=[
               'set -e',
-              'echo Downloading the docker-compose.yml from S3...',
-              'aws s3 cp s3://${S3_BUCKET_NAME}/docker-compose.yml /home/ubuntu/docker-compose.yml --region ${REGION}',
-              'echo Stopping and removing old Docker containers...',
-              'docker-compose -f /home/ubuntu/docker-compose.yml down',
+              'echo Enabling Docker Swarm...',
+              'docker swarm init || echo Already initialized',
+              'echo Downloading the docker-stack.yml from S3...',
+              'aws s3 cp s3://${S3_BUCKET_NAME}/docker-stack.yml /home/ubuntu/docker-stack.yml --region ${REGION}',
               'echo Logging into ECR...',
-              'aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_URI}',
-              'echo Pulling the new Docker image...',
-              'docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/genai-frontend:latest',
-              'echo Starting the containers with new image...',
-              'docker-compose -f /home/ubuntu/docker-compose.yml up -d',
-              'echo Cleaning up unused images...',
-              'docker system prune -f || true',
+              'aws ecr get-login-password --region ${REGION} | sudo docker login --username AWS --password-stdin ${ECR_URI}',
+              'echo Deploying with Docker Stack...',
+              'sudo docker stack deploy -c /home/ubuntu/docker-stack.yml --with-registry-auth myapp',
               'echo Deployment complete!'
             ]" \
-            --comment "Deploying new Docker image to EC2" \
+            --comment "Swarm Deployment with Zero Downtime" \
             --region "$REGION" \
             --query "Command.CommandId" --output text)
 
           echo "SSM Command ID: $COMMAND_ID"
+
 
           while true; do
             STATUS=$(aws ssm get-command-invocation \

@@ -10,3 +10,14 @@ services:
       - DANGEROUSLY_DISABLE_HOST_CHECK=true
       - REACT_APP_PREVIEW_PASSWORD=Steelglass123!@
     restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+        monitor: 30s
+      restart_policy:
+        condition: on-failure
