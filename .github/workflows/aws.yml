@@ -24,34 +24,29 @@ jobs:
           aws-secret-access-key: ${{ secrets.AMAZON_S3_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AMAZON_S3_REGION_NAME }}
 
-      # Dynamically set the Docker image tag
-      - name: Set Docker image tag dynamically
-        id: set-tag
-        run: |
-          TAG="dawoodkhan"  # Enter your Disired Tag Here
-          echo "TAG=$TAG" >> $GITHUB_ENV
-
-        # Build and Push Docker Image to ECR
+      # Step 3: Build and Push Docker Image to ECR
       - name: Build and Push Docker Image to ECR
         run: |
-          aws ecr get-login-password --region ${{ secrets.AMAZON_S3_REGION_NAME }} | \
-          docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
+          # Log in to ECR
+          aws ecr get-login-password --region ${{ secrets.AMAZON_S3_REGION_NAME }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
 
-          docker build -t genai-frontend:${TAG} .
-          docker tag genai-frontend:${TAG} \
-            ${{ secrets.ECR_URI }}:${TAG}
-          docker push ${{ secrets.ECR_URI }}:${TAG}
+          # Build Docker image
+          docker build -t genai-frontend:latest .
 
-        # Set the image tag dynamically in the docker-stack.yml file
-      - name: Update docker-stack.yml with the image tag
-        run: |
-          sed -i "s|image:.*|image: ${{ secrets.ECR_URI }}:${TAG}|" docker-stack.yml
+          # Tag the image
+          docker tag genai-frontend:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AMAZON_S3_REGION_NAME }}.amazonaws.com/genai-frontend:latest
 
+          # Push the Docker image to ECR
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AMAZON_S3_REGION_NAME }}.amazonaws.com/genai-frontend:latest
+
+      # Step 4: Upload docker-stack.yml to S3 (Swarm stack file)
       - name: Upload docker-stack.yml to S3
         run: |
-          aws s3 cp docker-stack.yml s3://${{ secrets.S3_BUCKET_NAME }}/docker-stack.yml \
-            --region ${{ secrets.AMAZON_S3_REGION_NAME }}
-
+          aws s3 cp docker-stack.yml s3://${{ secrets.S3_BUCKET_NAME }}/docker-stack.yml --region ${{ secrets.AMAZON_S3_REGION_NAME }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AMAZON_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AMAZON_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AMAZON_S3_REGION_NAME }}
       # Step 5: Deploy Docker on EC2 via SSM
       - name: Deploy Docker on EC2 via SSM
         run: |
