@@ -6,6 +6,9 @@ on:
       - "main"
       - "rollback"
 
+env:
+  IMAGE_TAG: v100   # put your desired image tag here
+
 jobs:
   deploy-master:
     name: Deploy to EC2 (Prod)
@@ -30,16 +33,21 @@ jobs:
           # Log in to ECR
           aws ecr get-login-password --region ${{ secrets.AMAZON_S3_REGION_NAME }} | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
 
-          # Build Docker image
-          docker build -t genai-frontend:latest .
+          # Build Docker image with dynamic tag
+          docker build -t genai-frontend:${{ env.IMAGE_TAG }} .
 
-          # Tag the image
-          docker tag genai-frontend:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AMAZON_S3_REGION_NAME }}.amazonaws.com/genai-frontend:latest
+          # Tag the image for ECR
+          docker tag genai-frontend:${{ env.IMAGE_TAG }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AMAZON_S3_REGION_NAME }}.amazonaws.com/genai-frontend:${{ env.IMAGE_TAG }}
 
-          # Push the Docker image to ECR
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AMAZON_S3_REGION_NAME }}.amazonaws.com/genai-frontend:latest
+          # Push the Docker image to ECR with dynamic tag
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AMAZON_S3_REGION_NAME }}.amazonaws.com/genai-frontend:${{ env.IMAGE_TAG }}
 
-      # Step 4: Upload docker-stack.yml to S3 (Swarm stack file)
+      # Step 4: Update docker-stack.yml with the new tag
+      - name: Update docker-stack.yml with dynamic tag
+        run: |
+          sed -i "s|\(image: .*/genai-frontend:\).*|\1${{ env.IMAGE_TAG }}|" docker-stack.yml
+
+      # Step 5: Upload docker-stack.yml to S3 (Swarm stack file)
       - name: Upload docker-stack.yml to S3
         run: |
           aws s3 cp docker-stack.yml s3://${{ secrets.S3_BUCKET_NAME }}/docker-stack.yml --region ${{ secrets.AMAZON_S3_REGION_NAME }}
@@ -47,6 +55,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AMAZON_S3_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AMAZON_S3_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AMAZON_S3_REGION_NAME }}
+
       # Step 5: Deploy Docker on EC2 via SSM
       - name: Deploy Docker on EC2 via SSM
         run: |
